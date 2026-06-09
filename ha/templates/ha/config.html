@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HA Configuration</title>
+</head>
+<body>
+
+<h1>Keepalived HA Configuration</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">
+        Save Configuration
+    </button>
+</form>
+
+</body>
+</html>
