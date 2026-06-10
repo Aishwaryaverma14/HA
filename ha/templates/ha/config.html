@@ -1,20 +1,376 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>HA Configuration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keepalived HA Configuration Manager</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background-color: #111827;
+            border-bottom: 1px solid #1f2937;
+        }
+        .card-custom {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        .form-control, .form-control:focus {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #f8fafc;
+        }
+        .form-control::placeholder {
+            color: #6b7280;
+        }
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        .btn-indigo {
+            background-color: #6366f1;
+            border: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .btn-indigo:hover {
+            background-color: #4f46e5;
+            transform: translateY(-1px);
+        }
+        .btn-indigo:active {
+            transform: translateY(1px);
+        }
+        .config-preview {
+            background-color: #0f172a;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #a7f3d0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .info-badge {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+        .status-badge-active {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+        .status-badge-inactive {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .divider {
+            height: 1px;
+            background-color: #1f2937;
+            margin: 20px 0;
+        }
+        .alert-dismissible .btn-close {
+            filter: invert(1);
+        }
+    </style>
 </head>
 <body>
 
-<h1>Keepalived HA Configuration</h1>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-white" href="/">
+                <i class="bi bi-shield-fill-check text-indigo" style="color: #6366f1; font-size: 1.5rem;"></i>
+                <span>HA Configuration Engine</span>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="info-badge"><i class="bi bi-cpu me-1"></i>Keepalived v2.x</span>
+            </div>
+        </div>
+    </nav>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+    <!-- Main Content Container -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+                
+                <!-- Django Messages / Success Feedback -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-dismissible fade show border-0 shadow mb-4" role="alert" style="background-color: rgba(99, 102, 241, 0.15); border-left: 4px solid #6366f1 !important; color: #a5b4fc;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                <div>{{ message }}</div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
 
-    <button type="submit">
-        Save Configuration
-    </button>
-</form>
+                <!-- Content Grid -->
+                <div class="row g-4">
+                    
+                    <!-- Left: Configuration Form Card -->
+                    <div class="col-lg-6">
+                        <div class="card card-custom h-100 p-4">
+                            <div class="mb-4">
+                                <h3 class="fw-bold gradient-header mb-1">HA settings</h3>
+                                <p class="text-secondary mb-0">Configure virtual router IP redundancy parameters.</p>
+                            </div>
+                            
+                            <form method="post" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="row g-3">
+                                    <!-- Virtual IP -->
+                                    <div class="col-12">
+                                        <label for="{{ form.virtual_ip.id_for_label }}" class="form-label d-flex align-items-center gap-2 text-light fw-medium small">
+                                            <i class="bi bi-globe text-primary"></i> Virtual IP Address
+                                        </label>
+                                        {{ form.virtual_ip }}
+                                        {% if form.virtual_ip.errors %}
+                                            <div class="text-danger mt-1 small">
+                                                {% for error in form.virtual_ip.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
 
+                                    <!-- Network Interface -->
+                                    <div class="col-12">
+                                        <label for="{{ form.interface.id_for_label }}" class="form-label d-flex align-items-center gap-2 text-light fw-medium small">
+                                            <i class="bi bi-ethernet text-primary"></i> Network Interface
+                                        </label>
+                                        {{ form.interface }}
+                                        {% if form.interface.errors %}
+                                            <div class="text-danger mt-1 small">
+                                                {% for error in form.interface.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 divider"></div>
+
+                                    <!-- Master Node IP -->
+                                    <div class="col-md-6">
+                                        <label for="{{ form.master_ip.id_for_label }}" class="form-label d-flex align-items-center gap-2 text-light fw-medium small">
+                                            <i class="bi bi-hdd-network text-success"></i> Master IP
+                                        </label>
+                                        {{ form.master_ip }}
+                                        {% if form.master_ip.errors %}
+                                            <div class="text-danger mt-1 small">
+                                                {% for error in form.master_ip.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Slave Node IP -->
+                                    <div class="col-md-6">
+                                        <label for="{{ form.slave_ip.id_for_label }}" class="form-label d-flex align-items-center gap-2 text-light fw-medium small">
+                                            <i class="bi bi-hdd-network text-warning"></i> Slave IP
+                                        </label>
+                                        {{ form.slave_ip }}
+                                        {% if form.slave_ip.errors %}
+                                            <div class="text-danger mt-1 small">
+                                                {% for error in form.slave_ip.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Master Priority -->
+                                    <div class="col-md-6">
+                                        <label for="{{ form.master_priority.id_for_label }}" class="form-label d-flex align-items-center gap-2 text-light fw-medium small">
+                                            <i class="bi bi-arrow-up-circle text-success"></i> Master Priority
+                                        </label>
+                                        {{ form.master_priority }}
+                                        {% if form.master_priority.errors %}
+                                            <div class="text-danger mt-1 small">
+                                                {% for error in form.master_priority.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Slave Priority -->
+                                    <div class="col-md-6">
+                                        <label for="{{ form.slave_priority.id_for_label }}" class="form-label d-flex align-items-center gap-2 text-light fw-medium small">
+                                            <i class="bi bi-arrow-down-circle text-warning"></i> Slave Priority
+                                        </label>
+                                        {{ form.slave_priority }}
+                                        {% if form.slave_priority.errors %}
+                                            <div class="text-danger mt-1 small">
+                                                {% for error in form.slave_priority.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-2">
+                                    <button type="submit" class="btn btn-indigo w-100 d-flex align-items-center justify-content-center gap-2 shadow">
+                                        <i class="bi bi-save"></i> Save & Generate Config
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right: Config Preview and Active Status -->
+                    <div class="col-lg-6">
+                        <div class="d-flex flex-column gap-4 h-100">
+                            
+                            <!-- Active Status Card -->
+                            <div class="card card-custom p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold mb-0">Active Configuration</h5>
+                                    {% if config %}
+                                        <span class="status-badge-active d-flex align-items-center gap-1">
+                                            <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true" style="animation-duration: 1.5s;"></span>
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge-inactive">Not Configured</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if config %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-borderless align-middle mb-0" style="background-color: transparent;">
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-secondary ps-0 py-2"><i class="bi bi-globe me-2 text-primary"></i>Virtual IP</td>
+                                                <td class="text-end fw-bold py-2 text-light">{{ config.virtual_ip }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-secondary ps-0 py-2"><i class="bi bi-ethernet me-2 text-primary"></i>Interface</td>
+                                                <td class="text-end fw-bold py-2 text-light">{{ config.interface }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-secondary ps-0 py-2"><i class="bi bi-hdd-network me-2 text-success"></i>Master Node</td>
+                                                <td class="text-end fw-bold py-2 text-light">
+                                                    {{ config.master_ip }} 
+                                                    <span class="badge bg-success bg-opacity-25 text-success border border-success-subtle ms-1" style="font-size: 0.7rem; font-weight: 500;">Pri: {{ config.master_priority }}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-secondary ps-0 py-2"><i class="bi bi-hdd-network me-2 text-warning"></i>Slave Node</td>
+                                                <td class="text-end fw-bold py-2 text-light">
+                                                    {{ config.slave_ip }} 
+                                                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning-subtle ms-1" style="font-size: 0.7rem; font-weight: 500;">Pri: {{ config.slave_priority }}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-4 text-secondary">
+                                    <i class="bi bi-exclamation-circle fs-2 mb-2 d-block text-warning opacity-75"></i>
+                                    <p class="mb-0">No active configuration found. Fill in the form to initialize.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Keepalived Config Code Card -->
+                            <div class="card card-custom p-4 flex-grow-1 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold mb-0">Keepalived Config File</h5>
+                                    {% if config_text %}
+                                        <button id="copy-btn" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" onclick="copyConfig()" style="font-size: 0.85rem; border-color: #374151;">
+                                            <i id="copy-icon" class="bi bi-clipboard"></i> <span id="copy-text">Copy</span>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if config_text %}
+                                    <pre class="config-preview flex-grow-1 mb-0"><code id="config-code">{{ config_text }}</code></pre>
+                                    <div class="text-secondary small mt-2 d-flex align-items-center gap-1">
+                                        <i class="bi bi-info-circle text-info"></i>
+                                        <span>File saved to: <code class="text-info-emphasis">{{ config_filepath }}</code></span>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-5 text-secondary border border-dashed border-secondary border-opacity-25 rounded flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                                        <i class="bi bi-code-slash fs-2 mb-2 opacity-50"></i>
+                                        <p class="mb-0">Configuration preview will appear here.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript Copy Function -->
+    <script>
+        function copyConfig() {
+            const codeEl = document.getElementById('config-code');
+            if (!codeEl) return;
+            
+            const text = codeEl.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const copyIcon = document.getElementById('copy-icon');
+                const copyText = document.getElementById('copy-text');
+                const copyBtn = document.getElementById('copy-btn');
+                
+                copyIcon.className = 'bi bi-check2 text-success';
+                copyText.textContent = 'Copied!';
+                copyBtn.classList.remove('btn-outline-light');
+                copyBtn.classList.add('btn-outline-success');
+                copyBtn.style.borderColor = '#198754';
+                
+                setTimeout(() => {
+                    copyIcon.className = 'bi bi-clipboard';
+                    copyText.textContent = 'Copy';
+                    copyBtn.classList.remove('btn-outline-success');
+                    copyBtn.classList.add('btn-outline-light');
+                    copyBtn.style.borderColor = '#374151';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
 </body>
 </html>
