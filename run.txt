@@ -1,0 +1,141 @@
+=======================================================
+  KEEPALIVED HA MANAGER - COMPLETE COMMAND REFERENCE
+=======================================================
+
+1. Navigate to project directory
+-------------------------------------------------------
+cd /project/test_replication
+ls -l /project/test_replication
+
+
+2. Create & activate virtual environment
+-------------------------------------------------------
+python3 -m venv venv
+
+# Linux / macOS:
+source venv/bin/activate
+
+# Windows:
+.\venv\Scripts\activate
+
+
+3. Install Django
+-------------------------------------------------------
+pip install django
+
+
+4. Create project & app
+-------------------------------------------------------
+django-admin startproject ha_manager
+cd ha_manager
+python3 manage.py startapp ha
+
+
+5. Edit files in nano editor
+-------------------------------------------------------
+nano ha/models.py
+nano ha/admin.py
+nano ha_manager/settings.py
+# Ctrl + O  → Save
+# Enter     → Confirm
+# Ctrl + X  → Exit
+
+
+6. Verify model file
+-------------------------------------------------------
+cat ha/models.py
+
+
+7. Create database tables
+-------------------------------------------------------
+python manage.py makemigrations
+python manage.py migrate
+
+
+8. Create admin superuser
+-------------------------------------------------------
+python manage.py createsuperuser
+
+
+9. Health check
+-------------------------------------------------------
+python manage.py check
+
+
+10. Diagnostic library checks
+-------------------------------------------------------
+python -c "import psutil; print(list(psutil.net_if_addrs().keys()))"
+python -c "import netifaces; print(netifaces.interfaces())"
+python -c "import socket; print(socket.if_nameindex())"
+
+
+11. File path resolution checks
+-------------------------------------------------------
+python -c "import os; print(os.path.abspath('/tmp/keepalived.conf'))"
+python -c "import os; print(os.path.exists('C:\\tmp\\keepalived.conf'))"
+
+
+12. Start dev server
+-------------------------------------------------------
+python manage.py runserver
+
+
+13. Open in browser
+-------------------------------------------------------
+http://127.0.0.1:8000/
+http://127.0.0.1:8000/admin/
+
+
+14. Run tests
+-------------------------------------------------------
+python manage.py test
+
+
+15. Verify config file
+-------------------------------------------------------
+# Windows:
+Get-Content C:\tmp\keepalived.conf
+
+# Linux:
+cat /tmp/keepalived.conf
+
+
+16. Copy flowchart image to Downloads
+-------------------------------------------------------
+Copy-Item "C:\Users\user\.gemini\antigravity\brain\...\ha_flowchart.png" -Destination "C:\Users\user\Downloads\ha_flowchart.png" -Force
+
+
+17. Deploy on Linux (Production)
+-------------------------------------------------------
+sudo apt update
+sudo apt install keepalived
+keepalived -t -f /tmp/keepalived.conf
+sudo cp /tmp/keepalived.conf /etc/keepalived/keepalived.conf
+sudo systemctl restart keepalived
+sudo systemctl status keepalived
+
+
+18. Get installed packages
+-------------------------------------------------------
+pip freeze
+
+
+19. Install all packages individually
+-------------------------------------------------------
+pip install django==6.0.6
+pip install asgiref==3.11.1
+pip install sqlparse==0.5.5
+pip install tzdata==2026.2
+
+# OR install all at once:
+pip install -r requirements.txt
+
+
+=======================================================
+  CONFIG FILE SAVE LOCATION
+=======================================================
+Windows  →  C:\tmp\keepalived.conf
+Linux    →  /tmp/keepalived.conf
+Deploy   →  /etc/keepalived/keepalived.conf
+
+=======================================================
